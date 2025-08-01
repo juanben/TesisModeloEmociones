@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 # Configura el puerto correcto (ajusta COMx)
-puerto = serial.Serial('COM3', 115200)
+puerto = serial.Serial('COM5', 115200)
 
 # Lista para guardar valores
 valores = []
