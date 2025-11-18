@@ -1,6 +1,6 @@
 import serial, time
 
-for port in ["COM3", "COM4", "COM5", "COM6"]:
+for port in [ "COM4", "COM5"]:
     try:
         ser = serial.Serial(port, 115200, timeout=2)
         print(f"Probando {port}...")

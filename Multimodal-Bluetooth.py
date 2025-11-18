@@ -5,13 +5,13 @@ import csv
 import threading
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk  
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import time
 
 # ------------------- CONFIGURACIÓN -------------------
-BT_PORT = "COM6"   # <-- Cambia según tu caso
+BT_PORT = "COM4"   # <-- Cambia según tu caso
 BAUD_RATE = 115200
 
 # Inicializar MediaPipe
