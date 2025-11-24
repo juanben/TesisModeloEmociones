@@ -1,0 +1,5 @@
+{ "neutro": 0,
+    "miedo": 1,
+    "ira": 2,
+    "alegria": 3
+}

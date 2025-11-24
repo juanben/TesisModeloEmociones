@@ -7,7 +7,7 @@ INPUT_DIR = "DatasetLimpio"
 OUTPUT_DIR = "Ventanas"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-WINDOW_SECONDS = 5          # Sección comun en todos los trabajos relacionados
+WINDOW_SECONDS = 3          # Sección comun en todos los trabajos relacionados
 OVERLAP_RATIO = 0.5         # 50%
 FEATURE_COUNT = 100         # 1 ECG + 99 pose
 
@@ -51,6 +51,10 @@ def generar_ventanas(df, fps, window_seconds=5, overlap_ratio=0.5):
 
         window_labels = labels[start:end]
 
+            # ✅ DESCARTAR VENTANAS INCOMPLETAS
+        if window_data.shape[0] != samples_per_window:
+            continue
+
         # Asignar emoción dominante
         unique, counts = np.unique(window_labels, return_counts=True)
         dominant_label = unique[np.argmax(counts)]
@@ -66,7 +70,7 @@ def procesar_participante(file_path):
     print(f"Procesando participante: {subject_id}")
 
     df = cargar_dataframe(file_path)
-    fps = calcular_fps(df)
+    fps = 10.4
 
     X, y = generar_ventanas(df, fps,
                             window_seconds=WINDOW_SECONDS,
