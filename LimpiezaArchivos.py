@@ -2,19 +2,17 @@ import pandas as pd
 import numpy as np
 import glob
 import os
+import re
 
-# Carpeta destino
 OUTPUT_DIR = "DatasetLimpio"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Obtener solo archivos CSV que NO sean limpios
-files = [f for f in glob.glob("DatasetSucio/*.csv") if "limpio" not in f.lower()]
+files = [f for f in glob.glob("datasets_etiquetados/*.csv")]
 
-
-# -------------------------------------------------------------------
-#  Detectar tramos planos de ECG sin romper dimensiones
-# -------------------------------------------------------------------
-def detectar_ecg_plano(df, col="ecg_smooth", ventana=80, tol=2):
+# ------------------------------
+# Detectar tramos planos
+# ------------------------------
+def detectar_ecg_plano(df, col="ecg_smooth", ventana=25, tol=3):
 
     valores = df[col].values
     n = len(valores)
@@ -22,51 +20,51 @@ def detectar_ecg_plano(df, col="ecg_smooth", ventana=80, tol=2):
     if n == 0 or n < ventana:
         return np.zeros(n, dtype=bool)
 
-    dif = np.abs(np.diff(valores))          # len = n-1
+    dif = np.abs(np.diff(valores))
     plano = (dif < tol).astype(int)
 
-    conv = np.convolve(plano, np.ones(ventana), mode="same")  # len = n-1
+    conv = np.convolve(plano, np.ones(ventana), mode="same")
     conv = conv >= ventana
 
-    # Ajustar longitud al tamaño del DataFrame
     conv_full = np.zeros(n, dtype=bool)
     conv_full[:len(conv)] = conv
 
     return conv_full
 
 
-# -------------------------------------------------------------------
-#  Procesamiento archivo por archivo
-# -------------------------------------------------------------------
 for file in files:
     print(f"Procesando: {file}")
+
     df = pd.read_csv(file)
 
-    # -----------------------------
-    # 1. Eliminar frames sin pose
-    # -----------------------------
-    cols_pose = [c for c in df.columns if "_" in c and c != "ecg"]
-    df = df[df[cols_pose].sum(axis=1) != 0]
+    # =============================
+    # PRESERVAR ETIQUETAS Y TIEMPO
+    # =============================
+    label_backup = df["label"].copy() if "label" in df.columns else None
+    time_backup  = df["time_sec"].copy() if "time_sec" in df.columns else None
 
-    # -----------------------------
-    # 2. Filtrar ECG basura
-    # -----------------------------
-    df = df[(df["ecg"] > 300) & (df["ecg"] < 3000)]
+    # =============================
+    # COLUMNAS DE POSE
+    # =============================
+    cols_pose = [c for c in df.columns if re.match(r"\d+_[xyz]$", c)]
 
-    # -----------------------------
-    # 3. Filtrar poses fuera de rango
-    # -----------------------------
-    for c in cols_pose:
-        df = df[df[c].between(-1, 2)]
+    # ✅ NUEVO: eliminar filas donde TODOS los landmarks == 0
+    df = df[(df[cols_pose].abs().sum(axis=1) != 0)]
 
-    # -----------------------------
-    # 4. Interpolación
-    # -----------------------------
-    df = df.interpolate(method="linear")
+    # 1) eliminar NaNs de pose
+    df = df.dropna(subset=cols_pose)
 
-    # -----------------------------
-    # 5. Normalizar respecto a pelvis (23)
-    # -----------------------------
+    # 2) Filtrar ECG sin afectar emoción
+    df = df[(df["ecg"] > 100) & (df["ecg"] < 4095)]
+
+    # 3) Mantener frames si 80% landmarks están en rango
+    mask = ((df[cols_pose] >= -1) & (df[cols_pose] <= 2)).mean(axis=1) > 0.80
+    df = df[mask]
+
+    # 4) Interpolación segura
+    df[["ecg"] + cols_pose] = df[["ecg"] + cols_pose].interpolate(method="linear")
+
+    # 5) Normalizar respecto a pelvis
     pelvis_x = df["23_x"]
     pelvis_y = df["23_y"]
 
@@ -74,29 +72,42 @@ for file in files:
         df[f"{i}_x"] = df[f"{i}_x"] - pelvis_x
         df[f"{i}_y"] = df[f"{i}_y"] - pelvis_y
 
-    # -----------------------------
-    # 6. Suavizado
-    # -----------------------------
+    # 6) Suavizado
     df["ecg_smooth"] = df["ecg"].rolling(5, center=True).median()
-
     for c in cols_pose:
         df[c] = df[c].rolling(3, center=True).mean()
 
-    df = df.dropna().copy()    # <--- FIX: elimina fragmentación
+    df = df.fillna(method="bfill").fillna(method="ffill").copy()
 
-    # -----------------------------
-    # 7. Detectar tramos planos
-    # -----------------------------
+    # 7) Eliminar solo tramos planos
     planos = detectar_ecg_plano(df)
     df = df[~planos].copy()
 
-    # -----------------------------
-    # 8. Guardar dataset limpio
-    # -----------------------------
+    # =============================
+    # RESTAURAR LABEL Y TIME
+    # =============================
+    if label_backup is not None:
+        df["label"] = label_backup.loc[df.index]
+
+    if time_backup is not None:
+        df["time_sec"] = time_backup.loc[df.index]
+
+    # =============================
+    # ORDENAR COLUMNAS
+    # =============================
+    col_order = ["timestamp", "time_sec", "ecg", "ecg_smooth"] \
+                + cols_pose + ["label"]
+
+    df = df[col_order]
+
+    # =============================
+    # GUARDAR
+    # =============================
     output_path = os.path.join(
         OUTPUT_DIR,
         f"{os.path.splitext(os.path.basename(file))[0]}_limpio.csv"
     )
     df.to_csv(output_path, index=False)
 
-    print(f"  ✔ Guardado en: {output_path}\n")
+    print(f"  ✔ Guardado en: {output_path}")
+    print(f"  ✔ Filas finales: {len(df)}\n")
