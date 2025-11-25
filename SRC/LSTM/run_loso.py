@@ -11,7 +11,7 @@ WINDOWS_DIR = os.path.abspath(
 
 
 # <<--- AQUÍ CAMBIAS EL SUJETO QUE QUEDA FUERA
-SUBJECT_OUT = "19M"
+SUBJECT_OUT = "15H"
 
 subjects_data = load_windows_by_subject(WINDOWS_DIR)
 print("Sujetos detectados:", list(subjects_data.keys()))

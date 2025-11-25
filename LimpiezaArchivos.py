@@ -31,6 +31,65 @@ def detectar_ecg_plano(df, col="ecg_smooth", ventana=25, tol=3):
 
     return conv_full
 
+# ======== NORMALIZAR POSE ==========
+def normalize_pose(df, cols_pose):
+    """
+    Normaliza pose en 3 pasos:
+    1. Rotación para alinear cuerpo
+    2. Traslación a pelvis
+    3. Escala por distancia entre caderas
+    """
+
+    # ================================
+    # 1. ORIENTACIÓN (USAR COORDS ORIGINALES)
+    # ================================
+    shoulder_x = (df["11_x"] + df["12_x"]) / 2
+    shoulder_y = (df["11_y"] + df["12_y"]) / 2
+
+    pelvis_x = (df["23_x"] + df["24_x"]) / 2
+    pelvis_y = (df["23_y"] + df["24_y"]) / 2
+
+    vx = shoulder_x - pelvis_x
+    vy = shoulder_y - pelvis_y
+
+    # ángulo del cuerpo en el frame
+    angles = np.arctan2(vy, vx)
+    cos_a = np.cos(-angles)
+    sin_a = np.sin(-angles)
+
+    # ================================
+    # ROTAR TODOS LOS LANDMARKS
+    # ================================
+    for i in range(33):
+        x = df[f"{i}_x"].values
+        y = df[f"{i}_y"].values
+
+        # centrar antes de rotar
+        x = x - pelvis_x
+        y = y - pelvis_y
+
+        # rotar
+        x_rot = x * cos_a - y * sin_a
+        y_rot = x * sin_a + y * cos_a
+
+        df[f"{i}_x"] = x_rot
+        df[f"{i}_y"] = y_rot
+
+    # ================================
+    # ESCALA POR DISTANCIA ENTRE CADERAS
+    # ================================
+    hip_dist = np.sqrt(
+        (df["23_x"] - df["24_x"])**2 +
+        (df["23_y"] - df["24_y"])**2
+    )
+    hip_dist[hip_dist == 0] = 1e-6
+
+    for i in range(33):
+        df[f"{i}_x"] = df[f"{i}_x"] / hip_dist
+        df[f"{i}_y"] = df[f"{i}_y"] / hip_dist
+
+    return df
+
 
 for file in files:
     print(f"Procesando: {file}")
@@ -64,21 +123,18 @@ for file in files:
     # 4) Interpolación segura
     df[["ecg"] + cols_pose] = df[["ecg"] + cols_pose].interpolate(method="linear")
 
-    # 5) Normalizar respecto a pelvis
-    pelvis_x = df["23_x"]
-    pelvis_y = df["23_y"]
-
-    for i in range(33):
-        df[f"{i}_x"] = df[f"{i}_x"] - pelvis_x
-        df[f"{i}_y"] = df[f"{i}_y"] - pelvis_y
+    # =========================================
+    # NORMALIZACIÓN POSTURAL INTER-SUJETO
+    # =========================================
+    df = normalize_pose(df, cols_pose)
 
     # 6) Suavizado
     df["ecg_smooth"] = df["ecg"].rolling(5, center=True).median()
     for c in cols_pose:
         df[c] = df[c].rolling(3, center=True).mean()
 
-    df = df.fillna(method="bfill").fillna(method="ffill").copy()
-
+    df = df.bfill().ffill().copy()
+    #df = df.dropna().copy()
     # 7) Eliminar solo tramos planos
     planos = detectar_ecg_plano(df)
     df = df[~planos].copy()
