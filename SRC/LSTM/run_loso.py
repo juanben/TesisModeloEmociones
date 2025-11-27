@@ -30,7 +30,7 @@ else:
 # ======================================================
 # SUJETO A DEJAR FUERA (LOSO)
 # ======================================================
-SUBJECT_OUT = "15H"   # <-- cámbialo para seleccionar qué sujeto queda fuera
+SUBJECT_OUT = "10H"   # <-- cámbialo para seleccionar qué sujeto queda fuera
 
 
 # ======================================================
