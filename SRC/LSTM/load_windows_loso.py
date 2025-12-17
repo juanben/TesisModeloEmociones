@@ -155,4 +155,4 @@ def loso_split(subjects_data, subject_out,
     X_test_int[:, :, 0] = (X_test_int[:, :, 0] - mean) / std
     X_test_ext[:, :, 0] = (X_test_ext[:, :, 0] - mean) / std
 
-    return X_train, y_train, X_val, y_val, X_test_int, y_test_int, X_test_ext, y_test_ext
+    return X_train, y_train, X_val, y_val, X_test_int, y_test_int, X_test_ext, y_test_ext, mean, std

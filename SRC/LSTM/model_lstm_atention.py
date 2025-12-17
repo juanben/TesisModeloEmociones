@@ -2,7 +2,7 @@
 # model_lstm_attention.py
 # Modelo LSTM bidireccional + Atención + Entrenamiento
 # ======================================================
-
+import os
 import tensorflow as tf
 from tensorflow.keras import layers, regularizers, models, optimizers, callbacks
 from sklearn.metrics import classification_report, confusion_matrix
@@ -25,7 +25,7 @@ def attention_block(lstm_outputs):
 
     # --- Weighted sum ---
     weighted = layers.Multiply(name="attn_multiply")([lstm_outputs, attention_weights])
-    context = layers.Lambda(lambda x: tf.reduce_sum(x, axis=1), name="attn_reduce")(weighted)
+    context = ReduceSumTime(name="attn_reduce")(weighted)
 
     return context
 
@@ -148,5 +148,10 @@ def train_and_evaluate(
     y_pred_ext = np.argmax(model.predict(X_test_ext), axis=1)
     print(classification_report(y_test_ext, y_pred_ext, digits=3))
     print(confusion_matrix(y_test_ext, y_pred_ext))
-
+    
     return model, history
+
+@tf.keras.utils.register_keras_serializable(package="Custom")
+class ReduceSumTime(layers.Layer):
+    def call(self, inputs):
+        return tf.reduce_sum(inputs, axis=1)

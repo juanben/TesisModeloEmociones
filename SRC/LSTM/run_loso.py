@@ -3,6 +3,8 @@
 # Archivo: run_loso.py
 # ======================================================
 import os
+import matplotlib.pyplot as plt
+import numpy as np
 from load_windows_loso import load_windows_by_subject, loso_split
 
 WINDOWS_DIR = os.path.abspath(
@@ -43,16 +45,71 @@ print("Sujetos detectados:", list(subjects_data.keys()))
     X_train, y_train,
     X_val, y_val,
     X_test_int, y_test_int,
-    X_test_ext, y_test_ext
+    X_test_ext, y_test_ext,
+    mean, std
 ) = loso_split(subjects_data, SUBJECT_OUT)
 
 
 # ======================================================
 # ENTRENAMIENTO Y EVALUACIÓN
 # ======================================================
-train_and_evaluate(
+model, history  = train_and_evaluate(
     X_train, y_train,
     X_val, y_val,
     X_test_int, y_test_int,
     X_test_ext, y_test_ext
 )
+# ======================================================
+# GUARDAR MODELO + SCALER (RECOMENDADO AQUÍ)
+# ======================================================
+os.makedirs("Modelo", exist_ok=True)
+  
+model_path = f"Modelo/model_{SELECTED_MODEL}_LOSO_{SUBJECT_OUT}.keras"
+scaler_path = f"Modelo/scaler_{SELECTED_MODEL}_LOSO_{SUBJECT_OUT}.npz"
+
+model.save(model_path)
+np.savez(scaler_path, mean=mean, std=std)
+
+print(f"\n✔ Modelo guardado en: {model_path}")
+print(f"✔ Scaler (mean/std) guardado en: {scaler_path}")
+
+# ======================================================
+# GRAFICAR LEARNING CURVES
+# ======================================================
+os.makedirs("graficas", exist_ok=True)
+
+# Archivos según sujeto
+loss_path = f"graficas/loss_{SUBJECT_OUT}.png"
+acc_path  = f"graficas/accuracy_{SUBJECT_OUT}.png"
+
+# ======= LOSS =======
+plt.figure(figsize=(7, 5))
+plt.plot(history.history['loss'], label='Train Loss', linewidth=2)
+plt.plot(history.history['val_loss'], label='Val Loss', linewidth=2)
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title(f'Training vs Validation Loss - LOSO {SUBJECT_OUT}')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig(loss_path, dpi=300)
+plt.close()
+
+print(f"✔ Gráfica guardada en: {loss_path}")
+
+# ======= ACCURACY =======
+plt.figure(figsize=(7, 5))
+plt.plot(history.history['accuracy'], label='Train Accuracy', linewidth=2)
+plt.plot(history.history['val_accuracy'], label='Val Accuracy', linewidth=2)
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.title(f'Training vs Validation Accuracy - LOSO {SUBJECT_OUT}')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.savefig(acc_path, dpi=300)
+plt.close()
+
+print(f"✔ Gráfica guardada en: {acc_path}")
+
+print("\n🎉 Entrenamiento LOSO finalizado y gráficas generadas.\n")
