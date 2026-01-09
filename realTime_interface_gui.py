@@ -18,7 +18,7 @@ from realTime_core import ECGSerialReader, RealTimeEmotionRunner, LABELS
 MODEL_PATH  = "Modelo/model_attention_LOSO_10H.keras"        # tu modelo final
 SCALER_PATH = "Modelo/scaler_attention_LOSO_10H.npz"   # tu scaler mean/std
 
-COM_PORT  = "COM7"
+COM_PORT  = "COM4"
 BAUD_RATE = 115200
 CAM_INDEX = 0
 
