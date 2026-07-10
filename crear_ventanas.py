@@ -11,34 +11,22 @@ OVERLAP_RATIO = 0.5
 
 
 # ==========================================================
-# 1) CALCULAR MEDIA Y STD GLOBAL DE ECG (ecg_smooth)
+# 1) ELIMINAR CÁLCULO GLOBAL Y PASAR DIRECTO AL PROCESAMIENTO
 # ==========================================================
-print("📌 Calculando media y desviación global del ECG (ecg_smooth)...\n")
+# Reemplaza todo el antiguo bloque 1 por una función de normalización limpia por sujeto
 
-all_ecg = []
-
-for file in os.listdir(INPUT_DIR):
-    if not file.endswith(".csv"):
-        continue
-
-    df = pd.read_csv(os.path.join(INPUT_DIR, file))
-
-    if "ecg_smooth" not in df.columns:
-        print(f"⚠️ Advertencia: archivo sin ecg_smooth -> {file}")
-        continue
-
-    all_ecg.append(df["ecg_smooth"].values)
-
-# concatenar todo
-all_ecg = np.concatenate(all_ecg)
-
-GLOBAL_MEAN = all_ecg.mean()
-GLOBAL_STD  = all_ecg.std()
-if GLOBAL_STD == 0:
-    GLOBAL_STD = 1.0
-
-print(f"   ✔ Global Mean ECG: {GLOBAL_MEAN:.4f}")
-print(f"   ✔ Global Std  ECG: {GLOBAL_STD:.4f}\n")
+def normalizar_por_sujeto(df):
+    """
+    Normaliza el ECG usando la media y desviación estándar 
+    exclusiva del participante actual para evitar data leakage.
+    """
+    subject_mean = df["ecg_smooth"].mean()
+    subject_std  = df["ecg_smooth"].std()
+    
+    if subject_std == 0 or np.isnan(subject_std):
+        subject_std = 1.0
+        
+    return (df["ecg_smooth"] - subject_mean) / subject_std
 
 
 # ==========================================================
@@ -93,22 +81,22 @@ def generar_ventanas(df, fps, window_seconds, overlap_ratio):
 
 
 # ==========================================================
-# 3) PROCESAR PARTICIPANTE
+# 3) PROCESAR PARTICIPANTE (REVISADO)
 # ==========================================================
 def procesar_archivo(path):
     subject_id = os.path.basename(path).split("_")[0]
 
-    print(f"\n🔵 Procesando: {subject_id}")
+    print(f"\n🔵 Procesando de forma independiente: {subject_id}")
 
     df = pd.read_csv(path)
 
     # ============================
-    # A) NORMALIZACIÓN GLOBAL ECG
+    # A) NORMALIZACIÓN LOCAL INTRA-SUJETO (Corrección Crítica)
     # ============================
-    df["ecg_norm"] = (df["ecg_smooth"] - GLOBAL_MEAN) / GLOBAL_STD
+    df["ecg_norm"] = normalizar_por_sujeto(df)
 
     # ============================
-    # B) DERIVADAS DEL ECG NORMALIZADO
+    # B) DERIVADAS DEL ECG NORMALIZADO (Se mantiene igual)
     # ============================
     df["ecg_diff"]  = df["ecg_norm"].diff().fillna(0)
     df["ecg_speed"] = df["ecg_norm"].diff().abs().fillna(0)
@@ -117,12 +105,12 @@ def procesar_archivo(path):
     # ============================
     # C) GENERAR VENTANAS
     # ============================
-    fps = 10.4  # tu tasa fija
+    fps = 10.4  
     X, y = generar_ventanas(df, fps,
                             window_seconds=WINDOW_SECONDS,
                             overlap_ratio=OVERLAP_RATIO)
 
-    # guardar
+    # Guardar vectores independientes
     np.save(os.path.join(OUTPUT_DIR, f"{subject_id}_windows.npy"), X)
     np.save(os.path.join(OUTPUT_DIR, f"{subject_id}_labels.npy"), y)
 
@@ -131,13 +119,12 @@ def procesar_archivo(path):
 
 
 # ==========================================================
-# 4) LOOP PRINCIPAL
+# 4) LOOP PRINCIPAL (Simplificado)
 # ==========================================================
 if __name__ == "__main__":
-
     files = [f for f in os.listdir(INPUT_DIR) if f.endswith(".csv")]
 
     for f in files:
         procesar_archivo(os.path.join(INPUT_DIR, f))
 
-    print("\n🎉 PROCESO COMPLETADO — VENTANAS GENERADAS")
+    print("\n🎉 PROCESO COMPLETADO — VENTANAS RE-NORMALIZADAS SIN LEAKAGE")

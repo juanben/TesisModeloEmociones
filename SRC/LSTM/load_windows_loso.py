@@ -26,6 +26,14 @@ def load_windows_by_subject(windows_dir):
 
         if len(X) != len(y):
             continue
+        # === CORRECCIÓN CRÍTICA DE DIMENSIONES ===
+        if X.ndim != 3:
+            print(f"❌ Saltando {subject}: Estructura corrupta. Se esperaban 3 dimensiones, tiene {X.ndim}.")
+            continue
+
+        if len(X) != len(y):
+            print(f"⚠️ Saltando {subject}: Desalineación entre X ({len(X)}) y y ({len(y)}).")
+            continue
         
         LABEL_MAP = {
             "neutro": 0,
@@ -98,8 +106,9 @@ def loso_split(subjects_data, subject_out,
 
     print("\nCounts antes de balanceo:", class_counts)
 
-    # Target = promedio de clases
-    target = int(np.mean(list(class_counts.values())))
+  # En lugar de: target = int(np.mean(list(class_counts.values())))
+    # Usa el máximo absoluto:
+    target = int(np.max(list(class_counts.values())))
 
     indices_final = []
 

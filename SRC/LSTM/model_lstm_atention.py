@@ -6,6 +6,7 @@ import os
 import tensorflow as tf
 from tensorflow.keras import layers, regularizers, models, optimizers, callbacks
 from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.utils.class_weight import compute_class_weight
 import numpy as np
 
 
@@ -123,13 +124,21 @@ def train_and_evaluate(
 
     model = build_lstm_model(input_shape=input_shape, num_classes=4)
     cbs = get_callbacks()
-
+    unique_classes = np.unique(y_train)
+    class_weights_vals = compute_class_weight(
+        class_weight='balanced',
+        classes=unique_classes,
+        y=y_train
+    )
+    class_weight_dict = dict(zip(unique_classes, class_weights_vals))
+    print("⚖️ Pesos de clase calculados para equilibrar la pérdida:", class_weight_dict)
     history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val),
         epochs=epochs,
         batch_size=batch_size,
         callbacks=cbs,
+        class_weight=class_weight_dict,
         verbose=1
     )
 
