@@ -1,0 +1,43 @@
+============================================================
+REPORTE OFICIAL DE MÉTRICAS INDEPENDIENTES INTER-SUJETO (LOSO)
+============================================================
+
+--- DESGLOSE RENDIMIENTO INDIVIDUAL POR FOLD ---
+Fold 1/12 - Sujeto: 10H -> Accuracy LOSO: 77.78%
+Fold 2/12 - Sujeto: 11H -> Accuracy LOSO: 39.43%
+Fold 3/12 - Sujeto: 12H -> Accuracy LOSO: 42.74%
+Fold 4/12 - Sujeto: 13M -> Accuracy LOSO: 42.86%
+Fold 5/12 - Sujeto: 14H -> Accuracy LOSO: 41.97%
+Fold 6/12 - Sujeto: 15H -> Accuracy LOSO: 33.36%
+Fold 7/12 - Sujeto: 16H -> Accuracy LOSO: 48.75%
+Fold 8/12 - Sujeto: 18M -> Accuracy LOSO: 18.65%
+Fold 9/12 - Sujeto: 19M -> Accuracy LOSO: 44.13%
+Fold 10/12 - Sujeto: 1M -> Accuracy LOSO: 71.46%
+Fold 11/12 - Sujeto: 20M -> Accuracy LOSO: 65.54%
+Fold 12/12 - Sujeto: 3H -> Accuracy LOSO: 55.11%
+
+============================================================
+📊 ANÁLISIS ESTADÍSTICO CONSOLIDADO
+============================================================
+Precisión Media LOSO: 48.48% ± 15.94%
+Intervalo de Confianza del 95% (LOSO): [39.46% - 57.50%]
+Mejor Desempeño: Sujeto 10H (77.78%)
+Peor Desempeño: Sujeto 18M (18.65%)
+
+--- CLASSIFICATION REPORT GLOBAL ---
+              precision    recall  f1-score   support
+
+     Neutral      0.594     0.619     0.606      3809
+       Miedo      0.016     0.022     0.019       645
+         Ira      0.352     0.256     0.296      1519
+     Alegría      0.027     0.030     0.028       270
+
+    accuracy                          0.444      6243
+   macro avg      0.247     0.232     0.237      6243
+weighted avg      0.451     0.444     0.445      6243
+
+--- MATRIZ DE CONFUSIÓN CONSOLIDADA ---
+[[2358  617  622  212]
+ [ 533   14   60   38]
+ [ 892  195  389   43]
+ [ 186   41   35    8]]

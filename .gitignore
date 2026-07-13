@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+
+# Jupyter / notebooks
+.ipynb_checkpoints/
+
+# Modelos y pesos entrenados
+*.keras
+*.h5
+*.hdf5
+*.pb
+*.onnx
+*.npz
+*.pkl
+*.pickle
+*.joblib
+
+# Datasets y salidas pesadas del proyecto
+
+
+# Archivos temporales y logs
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+
+# Sistema / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Archivos de prueba locales
+test.csv

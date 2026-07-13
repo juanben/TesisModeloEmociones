@@ -30,86 +30,106 @@ else:
 
 
 # ======================================================
-# SUJETO A DEJAR FUERA (LOSO)
+# CONFIGURACIÓN DEL MODO DE ENTRENAMIENTO
 # ======================================================
-SUBJECT_OUT = "10H"   # <-- cámbialo para seleccionar qué sujeto queda fuera
+MODO_GLOBAL = True      # True: Entrena todos los sujetos uno por uno. False: Solo entrena el sujeto manual.
+SUBJECT_OUT = "10H"     # Sujeto manual (solo se usa si MODO_GLOBAL = False)
 
 
 # ======================================================
-# CARGA DE VENTANAS
+# CARGA DE VENTANAS Y PREPARACIÓN DE SUJETOS
 # ======================================================
 subjects_data = load_windows_by_subject(WINDOWS_DIR)
-print("Sujetos detectados:", list(subjects_data.keys()))
+detected_subjects = list(subjects_data.keys())
+print("Sujetos detectados:", detected_subjects)
 
-(
-    X_train, y_train,
-    X_val, y_val,
-    X_test_int, y_test_int,
-    X_test_ext, y_test_ext,
-    mean, std
-) = loso_split(subjects_data, SUBJECT_OUT)
+# Determinar la lista de sujetos a procesar según la bandera
+if MODO_GLOBAL:
+    subjects_to_process = detected_subjects
+    print(f"🌍 MODO GLOBAL ACTIVADO: Se entrenarán los {len(subjects_to_process)} sujetos secuencialmente.\n")
+else:
+    if SUBJECT_OUT not in subjects_data:
+        raise ValueError(f"El sujeto manual '{SUBJECT_OUT}' no se encuentra en los datos detectados.")
+    subjects_to_process = [SUBJECT_OUT]
+    print(f"🕹 MODO MANUAL ACTIVADO: Solo se entrenará dejando fuera al sujeto: {SUBJECT_OUT}\n")
 
-
-# ======================================================
-# ENTRENAMIENTO Y EVALUACIÓN
-# ======================================================
-model, history  = train_and_evaluate(
-    X_train, y_train,
-    X_val, y_val,
-    X_test_int, y_test_int,
-    X_test_ext, y_test_ext
-)
-# ======================================================
-# GUARDAR MODELO + SCALER (RECOMENDADO AQUÍ)
-# ======================================================
-os.makedirs("Modelo", exist_ok=True)
-  
-model_path = f"Modelo/model_{SELECTED_MODEL}_LOSO_{SUBJECT_OUT}.keras"
-scaler_path = f"Modelo/scaler_{SELECTED_MODEL}_LOSO_{SUBJECT_OUT}.npz"
-
-model.save(model_path)
-np.savez(scaler_path, mean=mean, std=std)
-
-print(f"\n✔ Modelo guardado en: {model_path}")
-print(f"✔ Scaler (mean/std) guardado en: {scaler_path}")
 
 # ======================================================
-# GRAFICAR LEARNING CURVES
+# BUCLE DE ENTRENAMIENTO (LOSO)
 # ======================================================
-os.makedirs("graficas", exist_ok=True)
+for current_subject in subjects_to_process:
+    print(f"============ 🚀 Iniciando LOSO dejando fuera a: {current_subject} ============")
+    
+    (
+        X_train, y_train,
+        X_val, y_val,
+        X_test_int, y_test_int,
+        X_test_ext, y_test_ext,
+        mean, std
+    ) = loso_split(subjects_data, current_subject)
 
-# Archivos según sujeto
-loss_path = f"graficas/loss_{SUBJECT_OUT}.png"
-acc_path  = f"graficas/accuracy_{SUBJECT_OUT}.png"
+    # ======================================================
+    # ENTRENAMIENTO Y EVALUACIÓN
+    # ======================================================
+    model, history = train_and_evaluate(
+        X_train, y_train,
+        X_val, y_val,
+        X_test_int, y_test_int,
+        X_test_ext, y_test_ext
+    )
+    
+    # ======================================================
+    # GUARDAR MODELO + SCALER
+    # ======================================================
+    os.makedirs("Modelo", exist_ok=True)
+      
+    model_path = f"Modelo/model_{SELECTED_MODEL}_LOSO_{current_subject}.keras"
+    scaler_path = f"Modelo/scaler_{SELECTED_MODEL}_LOSO_{current_subject}.npz"
 
-# ======= LOSS =======
-plt.figure(figsize=(7, 5))
-plt.plot(history.history['loss'], label='Train Loss', linewidth=2)
-plt.plot(history.history['val_loss'], label='Val Loss', linewidth=2)
-plt.xlabel('Epochs')
-plt.ylabel('Loss')
-plt.title(f'Training vs Validation Loss - LOSO {SUBJECT_OUT}')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig(loss_path, dpi=300)
-plt.close()
+    model.save(model_path)
+    np.savez(scaler_path, mean=mean, std=std)
 
-print(f"✔ Gráfica guardada en: {loss_path}")
+    print(f"✔ Modelo guardado en: {model_path}")
+    print(f"✔ Scaler (mean/std) guardado en: {scaler_path}")
 
-# ======= ACCURACY =======
-plt.figure(figsize=(7, 5))
-plt.plot(history.history['accuracy'], label='Train Accuracy', linewidth=2)
-plt.plot(history.history['val_accuracy'], label='Val Accuracy', linewidth=2)
-plt.xlabel('Epochs')
-plt.ylabel('Accuracy')
-plt.title(f'Training vs Validation Accuracy - LOSO {SUBJECT_OUT}')
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.savefig(acc_path, dpi=300)
-plt.close()
+    # ======================================================
+    # GRAFICAR LEARNING CURVES
+    # ======================================================
+    os.makedirs("graficas", exist_ok=True)
 
-print(f"✔ Gráfica guardada en: {acc_path}")
+    # Archivos según sujeto
+    loss_path = f"graficas/loss_{current_subject}.png"
+    acc_path  = f"graficas/accuracy_{current_subject}.png"
 
-print("\n🎉 Entrenamiento LOSO finalizado y gráficas generadas.\n")
+    # ======= LOSS =======
+    plt.figure(figsize=(7, 5))
+    plt.plot(history.history['loss'], label='Train Loss', linewidth=2)
+    plt.plot(history.history['val_loss'], label='Val Loss', linewidth=2)
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title(f'Training vs Validation Loss - LOSO {current_subject}')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(loss_path, dpi=300)
+    plt.close()
+
+    print(f"✔ Gráfica guardada en: {loss_path}")
+
+    # ======= ACCURACY =======
+    plt.figure(figsize=(7, 5))
+    plt.plot(history.history['accuracy'], label='Train Accuracy', linewidth=2)
+    plt.plot(history.history['val_accuracy'], label='Val Accuracy', linewidth=2)
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.title(f'Training vs Validation Accuracy - LOSO {current_subject}')
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(acc_path, dpi=300)
+    plt.close()
+
+    print(f"✔ Gráfica guardada en: {acc_path}")
+    print(f"============  Finalizado LOSO para sujeto {current_subject} ============\n")
+
+print("🎉 Proceso completo terminado con éxito.")
