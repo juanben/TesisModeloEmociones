@@ -1,23 +1,32 @@
-# ======================================================
-# model_lstm_attention.py
-# Modelo LSTM bidireccional + Atención + Entrenamiento
-# ======================================================
+# ======================================================================
+# ARCHIVO: model_lstm_attention.py
+# DESCRIPCIÓN: Modelo LSTM bidireccional + Atención + Entrenamiento
+# ======================================================================
 import os
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, regularizers, models, optimizers, callbacks
 from sklearn.metrics import classification_report, confusion_matrix
-import numpy as np
+# CORRECCIÓN 1: Importar class_weight para el cálculo de balanceo
+from sklearn.utils import class_weight
+
+# ======================================================================
+# CAPAS PERSONALIZADAS (Declaradas al inicio para evitar errores de orden)
+# ======================================================================
+@tf.keras.utils.register_keras_serializable(package="Custom")
+class ReduceSumTime(layers.Layer):
+    def call(self, inputs):
+        return tf.reduce_sum(inputs, axis=1)
 
 
-# ======================================================
+# ======================================================================
 # ATENCIÓN COMPATIBLE (Keras 3 + TF 2.16)
-# ======================================================
+# ======================================================================
 def attention_block(lstm_outputs):
     """
     Atención tipo Bahdanau usando solo operaciones válidas de Keras.
     lstm_outputs: (batch, timesteps, features)
     """
-
     # --- Score ---
     score_first = layers.Dense(128, activation="tanh", name="attn_dense_1")(lstm_outputs)
     score = layers.Dense(1, name="attn_dense_2")(score_first)
@@ -30,9 +39,9 @@ def attention_block(lstm_outputs):
     return context
 
 
-# ======================================================
+# ======================================================================
 # CONSTRUCCIÓN DEL MODELO
-# ======================================================
+# ======================================================================
 def build_lstm_model(
     input_shape,
     num_classes=4,
@@ -114,7 +123,6 @@ def train_and_evaluate(
     epochs=100,
     batch_size=64
 ):
-
     print("\n==============================")
     print("  Entrenando modelo ATENCIÓN")
     print("==============================")
@@ -124,13 +132,22 @@ def train_and_evaluate(
     model = build_lstm_model(input_shape=input_shape, num_classes=4)
     cbs = get_callbacks()
 
+    # Calcular pesos de clase dinámicos para mitigar desbalance
+    class_weights = class_weight.compute_class_weight(
+        class_weight='balanced',
+        classes=np.unique(y_train),
+        y=y_train
+    )
+    class_weights_dict = dict(zip(np.unique(y_train), class_weights))
+
+    # Entrenamiento con inyección de pesos
     history = model.fit(
         X_train, y_train,
         validation_data=(X_val, y_val),
         epochs=epochs,
         batch_size=batch_size,
         callbacks=cbs,
-        verbose=1
+        class_weight=class_weights_dict,  # Priorización de clases minoritarias
     )
 
     # ===========================
@@ -150,8 +167,3 @@ def train_and_evaluate(
     print(confusion_matrix(y_test_ext, y_pred_ext))
     
     return model, history
-
-@tf.keras.utils.register_keras_serializable(package="Custom")
-class ReduceSumTime(layers.Layer):
-    def call(self, inputs):
-        return tf.reduce_sum(inputs, axis=1)
