@@ -7,65 +7,27 @@ OUTPUT_DIR = "Ventanas"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 WINDOW_SECONDS = 3
-OVERLAP_RATIO = 0.5
+OVERLAP_RATIO = 0.75  # Aumentado al 75% para maximizar el soporte de Miedo/Alegría/Ira
 
-
-# ==========================================================
-# 1) CALCULAR MEDIA Y STD GLOBAL DE ECG (ecg_smooth)
-# ==========================================================
-print("📌 Calculando media y desviación global del ECG (ecg_smooth)...\n")
-
-all_ecg = []
-
-for file in os.listdir(INPUT_DIR):
-    if not file.endswith(".csv"):
-        continue
-
-    df = pd.read_csv(os.path.join(INPUT_DIR, file))
-
-    if "ecg_smooth" not in df.columns:
-        print(f"⚠️ Advertencia: archivo sin ecg_smooth -> {file}")
-        continue
-
-    all_ecg.append(df["ecg_smooth"].values)
-
-# concatenar todo
-all_ecg = np.concatenate(all_ecg)
-
-GLOBAL_MEAN = all_ecg.mean()
-GLOBAL_STD  = all_ecg.std()
-if GLOBAL_STD == 0:
-    GLOBAL_STD = 1.0
-
-print(f"   ✔ Global Mean ECG: {GLOBAL_MEAN:.4f}")
-print(f"   ✔ Global Std  ECG: {GLOBAL_STD:.4f}\n")
-
-
-# ==========================================================
-# 2) GENERAR VENTANAS
-# ==========================================================
 def generar_ventanas(df, fps, window_seconds, overlap_ratio):
-
     samples_per_window = int(window_seconds * fps)
     step = int(samples_per_window * (1 - overlap_ratio))
 
     features_cols = []
-
     # ---------
-    # ECG BASE
+    # ECG BASE (4 Canales Fisiológicos Avanzados)
     # ---------
-    features_cols.append("ecg_norm")     # canal 0
+    features_cols.append("ecg_norm")     
     features_cols.append("ecg_diff")
     features_cols.append("ecg_speed")
-    features_cols.append("ecg_energy")
+    features_cols.append("ecg_energy")  # ¡Ahora sí garantizado!
 
     # ---------
-    # POSE 33x3
+    # POSE OPTIMIZADA (Tronco superior, coordenadas estables X e Y únicamente)
     # ---------
-    for i in range(33):
+    for i in range(17):  # Landmarks del 0 al 16 (rostro, hombros, codos, manos)
         features_cols.append(f"{i}_x")
         features_cols.append(f"{i}_y")
-        features_cols.append(f"{i}_z")
 
     data = df[features_cols].values
     labels = df["label"].values
@@ -81,8 +43,6 @@ def generar_ventanas(df, fps, window_seconds, overlap_ratio):
             continue
 
         win_labels = labels[start:end]
-
-        # emoción dominante
         unique, counts = np.unique(win_labels, return_counts=True)
         dominant = unique[np.argmax(counts)]
 
@@ -91,53 +51,38 @@ def generar_ventanas(df, fps, window_seconds, overlap_ratio):
 
     return np.array(X_windows), np.array(y_windows)
 
-
-# ==========================================================
-# 3) PROCESAR PARTICIPANTE
-# ==========================================================
 def procesar_archivo(path):
     subject_id = os.path.basename(path).split("_")[0]
-
-    print(f"\n🔵 Procesando: {subject_id}")
+    print(f"\n🔵 Procesando e Normalizando Sujeto: {subject_id}")
 
     df = pd.read_csv(path)
 
-    # ============================
-    # A) NORMALIZACIÓN GLOBAL ECG
-    # ============================
-    df["ecg_norm"] = (df["ecg_smooth"] - GLOBAL_MEAN) / GLOBAL_STD
+    # CORRECCIÓN CRÍTICA: Normalización Z-Score local (Evita Data Leakage inter-sujeto)
+    sub_mean = df["ecg_smooth"].mean()
+    sub_std = df["ecg_smooth"].std() if df["ecg_smooth"].std() != 0 else 1.0
 
-    # ============================
-    # B) DERIVADAS DEL ECG NORMALIZADO
-    # ============================
+    df["ecg_norm"] = (df["ecg_smooth"] - sub_mean) / sub_std
+    
+    # CORRECCIÓN DE ORDEN: Calcular variables ANTES de llamar a generar_ventanas
     df["ecg_diff"]  = df["ecg_norm"].diff().fillna(0)
     df["ecg_speed"] = df["ecg_norm"].diff().abs().fillna(0)
     df["ecg_energy"] = df["ecg_norm"] ** 2
 
-    # ============================
-    # C) GENERAR VENTANAS
-    # ============================
-    fps = 10.4  # tu tasa fija
-    X, y = generar_ventanas(df, fps,
-                            window_seconds=WINDOW_SECONDS,
-                            overlap_ratio=OVERLAP_RATIO)
+    LABEL_MAP = {"neutro": 0, "miedo": 1, "ira": 2, "alegria": 3}
+    df["label"] = df["label"].map(LABEL_MAP)
 
-    # guardar
+    fps = 10.4  
+    X, y = generar_ventanas(df, fps, window_seconds=WINDOW_SECONDS, overlap_ratio=OVERLAP_RATIO)
+
     np.save(os.path.join(OUTPUT_DIR, f"{subject_id}_windows.npy"), X)
     np.save(os.path.join(OUTPUT_DIR, f"{subject_id}_labels.npy"), y)
 
-    print(f"   ✔ Ventanas generadas: {X.shape[0]}")
-    print(f"   ✔ Shape ventana: {X.shape[1:]} (samples, features)")
+    print(f"   ✔ Ventanas generadas exitosamente: {X.shape[0]}")
+    print(f"   ✔ Dimensiones de entrada seguras: {X.shape[1:]} (pasos de tiempo, variables)")
 
-
-# ==========================================================
-# 4) LOOP PRINCIPAL
-# ==========================================================
 if __name__ == "__main__":
-
     files = [f for f in os.listdir(INPUT_DIR) if f.endswith(".csv")]
-
     for f in files:
         procesar_archivo(os.path.join(INPUT_DIR, f))
 
-    print("\n🎉 PROCESO COMPLETADO — VENTANAS GENERADAS")
+    print("\n🎉 PROCESO COMPLETADO — DATASET LISTO PARA EL EVALUADOR LOSO")

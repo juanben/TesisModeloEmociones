@@ -7,9 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from load_windows_loso import load_windows_by_subject, loso_split
 
-WINDOWS_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), "..", "..", "Ventanas")
-)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+WINDOWS_DIR = os.path.join(BASE_DIR, "Ventanas")
 
 # ======================================================
 # SELECCIÓN DEL MODELO

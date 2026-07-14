@@ -11,32 +11,46 @@ WINDOWS_DIR = "../../Ventanas"
 RANDOM_SEED = 42
 
 def load_windows_by_subject(windows_dir):
+    """
+    Carga de forma dinámica y absoluta todos los archivos .npy 
+    desde el directorio especificado.
+    """
+    import os
+    import numpy as np
+    
+    # Forzar a que use la ruta absoluta que le envía run_loso.py
+    windows_dir = os.path.abspath(windows_dir)
+    print(f"🔍 Cargando archivos .npy reales desde: {windows_dir}")
+    
     subjects_data = {}
-    window_files = glob.glob(os.path.join(windows_dir, "*_windows.npy"))
-    print("Buscando archivos en:", windows_dir)
-    for wfile in window_files:
-        subject = os.path.basename(wfile).split("_")[0]
-        lfile = os.path.join(windows_dir, f"{subject}_labels.npy")
+    
+    if not os.path.exists(windows_dir):
+        print(f"❌ ERROR: La carpeta {windows_dir} no existe.")
+        return subjects_data
 
-        if not os.path.exists(lfile):
-            continue
-
-        X = np.load(wfile)
-        y = np.load(lfile)
-
-        if len(X) != len(y):
-            continue
-        
-        LABEL_MAP = {
-            "neutro": 0,
-            "miedo": 1,
-            "ira": 2,
-            "alegria": 3
-        }
-
-        y = np.array([LABEL_MAP[l] for l in y])    
-        subjects_data[subject] = (X, y)
-
+    # Listar los archivos usando directamente la ruta absoluta corregida
+    files = os.listdir(windows_dir)
+    
+    for f in files:
+        if f.endswith("_windows.npy"):
+            subject_id = f.split("_")[0]
+            
+            win_path = os.path.join(windows_dir, f)
+            lbl_path = os.path.join(windows_dir, f.replace("_windows.npy", "_labels.npy"))
+            
+            if os.path.exists(lbl_path):
+                X = np.load(win_path, allow_pickle=True)
+                y = np.load(lbl_path, allow_pickle=True)
+                
+                # Omitir si la matriz de ventanas quedó vacía tras los filtros
+                if len(X.shape) != 3 or X.shape[0] == 0:
+                    continue
+                    
+                # Corregir mapeos de tipo de datos numéricos enteros
+                y = np.array(y, dtype=np.int64)
+                
+                subjects_data[subject_id] = (X, y)
+                
     return subjects_data
 
 
