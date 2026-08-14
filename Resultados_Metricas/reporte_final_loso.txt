@@ -3,49 +3,49 @@ REPORTE OFICIAL DE MÉTRICAS INDEPENDIENTES INTER-SUJETO (LOSO)
 ============================================================
 
 --- DESGLOSE RENDIMIENTO INDIVIDUAL POR FOLD ---
-Fold 1/20 - Sujeto: 10H -> Accuracy LOSO: 97.11%
-Fold 2/20 - Sujeto: 11H -> Accuracy LOSO: 80.46%
-Fold 3/20 - Sujeto: 12H -> Accuracy LOSO: 78.58%
-Fold 4/20 - Sujeto: 12M -> Accuracy LOSO: 69.12%
-Fold 5/20 - Sujeto: 13M -> Accuracy LOSO: 70.37%
-Fold 6/20 - Sujeto: 14H -> Accuracy LOSO: 83.40%
-Fold 7/20 - Sujeto: 15H -> Accuracy LOSO: 86.04%
-Fold 8/20 - Sujeto: 16H -> Accuracy LOSO: 89.39%
-Fold 9/20 - Sujeto: 18M -> Accuracy LOSO: 91.28%
-Fold 10/20 - Sujeto: 19M -> Accuracy LOSO: 79.57%
-Fold 11/20 - Sujeto: 1M -> Accuracy LOSO: 65.05%
+Fold 1/20 - Sujeto: 10H -> Accuracy LOSO: 91.91%
+Fold 2/20 - Sujeto: 11H -> Accuracy LOSO: 75.18%
+Fold 3/20 - Sujeto: 12H -> Accuracy LOSO: 70.20%
+Fold 4/20 - Sujeto: 12M -> Accuracy LOSO: 63.88%
+Fold 5/20 - Sujeto: 13M -> Accuracy LOSO: 61.98%
+Fold 6/20 - Sujeto: 14H -> Accuracy LOSO: 73.91%
+Fold 7/20 - Sujeto: 15H -> Accuracy LOSO: 74.24%
+Fold 8/20 - Sujeto: 16H -> Accuracy LOSO: 82.96%
+Fold 9/20 - Sujeto: 18M -> Accuracy LOSO: 88.57%
+Fold 10/20 - Sujeto: 19M -> Accuracy LOSO: 68.60%
+Fold 11/20 - Sujeto: 1M -> Accuracy LOSO: 56.57%
 Fold 12/20 - Sujeto: 20M -> Accuracy LOSO: 91.79%
-Fold 13/20 - Sujeto: 3H -> Accuracy LOSO: 83.27%
-Fold 14/20 - Sujeto: 4H -> Accuracy LOSO: 87.83%
-Fold 15/20 - Sujeto: 5H -> Accuracy LOSO: 91.54%
-Fold 16/20 - Sujeto: 6H -> Accuracy LOSO: 89.58%
-Fold 17/20 - Sujeto: 7M -> Accuracy LOSO: 93.24%
-Fold 18/20 - Sujeto: 8H -> Accuracy LOSO: 87.89%
-Fold 19/20 - Sujeto: 9M -> Accuracy LOSO: 95.48%
-Fold 20/20 - Sujeto: A1 -> Accuracy LOSO: 85.43%
+Fold 13/20 - Sujeto: 3H -> Accuracy LOSO: 79.81%
+Fold 14/20 - Sujeto: 4H -> Accuracy LOSO: 89.42%
+Fold 15/20 - Sujeto: 5H -> Accuracy LOSO: 78.07%
+Fold 16/20 - Sujeto: 6H -> Accuracy LOSO: 82.10%
+Fold 17/20 - Sujeto: 7M -> Accuracy LOSO: 93.38%
+Fold 18/20 - Sujeto: 8H -> Accuracy LOSO: 84.44%
+Fold 19/20 - Sujeto: 9M -> Accuracy LOSO: 90.68%
+Fold 20/20 - Sujeto: A1 -> Accuracy LOSO: 81.04%
 
 ============================================================
 📊 ANÁLISIS ESTADÍSTICO CONSOLIDADO
 ============================================================
-Precisión Media LOSO: 84.82% ± 8.58%
-Intervalo de Confianza del 95% (LOSO): [81.06% - 88.58%]
-Mejor Desempeño: Sujeto 10H (97.11%)
-Peor Desempeño: Sujeto 1M (65.05%)
+Precisión Media LOSO: 78.94% ± 10.50%
+Intervalo de Confianza del 95% (LOSO): [74.34% - 83.54%]
+Mejor Desempeño: Sujeto 7M (93.38%)
+Peor Desempeño: Sujeto 1M (56.57%)
 
 --- CLASSIFICATION REPORT GLOBAL ---
               precision    recall  f1-score   support
 
-     Neutral      0.966     0.844     0.901     18552
-       Miedo      0.551     0.842     0.666      1674
-         Ira      0.604     0.876     0.715      1882
-     Alegría      0.461     0.825     0.592       762
+     Neutral      0.959     0.767     0.852     18552
+       Miedo      0.450     0.832     0.584      1674
+         Ira      0.488     0.830     0.615      1882
+     Alegría      0.352     0.801     0.489       762
 
-    accuracy                          0.846     22870
-   macro avg      0.646     0.847     0.719     22870
-weighted avg      0.889     0.846     0.858     22870
+    accuracy                          0.778     22870
+   macro avg      0.562     0.807     0.635     22870
+weighted avg      0.863     0.778     0.801     22870
 
 --- MATRIZ DE CONFUSIÓN CONSOLIDADA ---
-[[15663  1117  1061   711]
- [  238  1410    12    14]
- [  199    25  1649     9]
- [  118     7     8   629]]
+[[14234  1637  1591  1090]
+ [  227  1392    39    16]
+ [  254    48  1563    17]
+ [  127    14    11   610]]

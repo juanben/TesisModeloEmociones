@@ -1,0 +1,51 @@
+============================================================
+REPORTE OFICIAL DE MÉTRICAS INDEPENDIENTES INTER-SUJETO (LOSO)
+============================================================
+
+--- DESGLOSE RENDIMIENTO INDIVIDUAL POR FOLD ---
+Fold 1/20 - Sujeto: 10H -> Accuracy LOSO: 89.60%
+Fold 2/20 - Sujeto: 11H -> Accuracy LOSO: 78.15%
+Fold 3/20 - Sujeto: 12H -> Accuracy LOSO: 73.85%
+Fold 4/20 - Sujeto: 12M -> Accuracy LOSO: 65.55%
+Fold 5/20 - Sujeto: 13M -> Accuracy LOSO: 67.65%
+Fold 6/20 - Sujeto: 14H -> Accuracy LOSO: 70.54%
+Fold 7/20 - Sujeto: 15H -> Accuracy LOSO: 70.31%
+Fold 8/20 - Sujeto: 16H -> Accuracy LOSO: 83.80%
+Fold 9/20 - Sujeto: 18M -> Accuracy LOSO: 86.17%
+Fold 10/20 - Sujeto: 19M -> Accuracy LOSO: 81.23%
+Fold 11/20 - Sujeto: 1M -> Accuracy LOSO: 53.98%
+Fold 12/20 - Sujeto: 20M -> Accuracy LOSO: 89.76%
+Fold 13/20 - Sujeto: 3H -> Accuracy LOSO: 84.39%
+Fold 14/20 - Sujeto: 4H -> Accuracy LOSO: 86.77%
+Fold 15/20 - Sujeto: 5H -> Accuracy LOSO: 85.95%
+Fold 16/20 - Sujeto: 6H -> Accuracy LOSO: 80.45%
+Fold 17/20 - Sujeto: 7M -> Accuracy LOSO: 93.38%
+Fold 18/20 - Sujeto: 8H -> Accuracy LOSO: 82.89%
+Fold 19/20 - Sujeto: 9M -> Accuracy LOSO: 91.67%
+Fold 20/20 - Sujeto: A1 -> Accuracy LOSO: 81.04%
+
+============================================================
+📊 ANÁLISIS ESTADÍSTICO CONSOLIDADO
+============================================================
+Precisión Media LOSO: 79.86% ± 9.82%
+Intervalo de Confianza del 95% (LOSO): [75.55% - 84.16%]
+Mejor Desempeño: Sujeto 7M (93.38%)
+Peor Desempeño: Sujeto 1M (53.98%)
+
+--- CLASSIFICATION REPORT GLOBAL ---
+              precision    recall  f1-score   support
+
+     Neutral      0.958     0.775     0.857     18552
+       Miedo      0.432     0.837     0.570      1674
+         Ira      0.522     0.832     0.642      1882
+     Alegría      0.376     0.801     0.512       762
+
+    accuracy                          0.785     22870
+   macro avg      0.572     0.811     0.645     22870
+weighted avg      0.865     0.785     0.807     22870
+
+--- MATRIZ DE CONFUSIÓN CONSOLIDADA ---
+[[14383  1789  1396   984]
+ [  237  1401    23    13]
+ [  262    40  1566    14]
+ [  126    12    14   610]]

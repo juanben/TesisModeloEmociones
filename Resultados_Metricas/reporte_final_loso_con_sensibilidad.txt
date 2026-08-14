@@ -1,0 +1,52 @@
+============================================================
+ANÁLISIS PRIMARIO (Cohorte completa) (N=20)
+============================================================
+Precisión Media LOSO: 78.94% ± 10.77%
+IC 95% (t-Student, df=19): [73.90% - 83.98%]
+Mejor Sujeto: 7M (93.38%)
+Peor Sujeto: 1M (56.57%)
+
+--- CLASSIFICATION REPORT ---
+              precision    recall  f1-score   support
+
+     Neutral      0.959     0.767     0.852     18552
+       Miedo      0.450     0.832     0.584      1674
+         Ira      0.488     0.830     0.615      1882
+     Alegría      0.352     0.801     0.489       762
+
+    accuracy                          0.778     22870
+   macro avg      0.562     0.807     0.635     22870
+weighted avg      0.863     0.778     0.801     22870
+
+--- MATRIZ DE CONFUSIÓN ---
+[[14234  1637  1591  1090]
+ [  227  1392    39    16]
+ [  254    48  1563    17]
+ [  127    14    11   610]]
+
+============================================================
+ANÁLISIS DE SENSIBILIDAD (excluyendo 1M) (N=19)
+============================================================
+Precisión Media LOSO: 80.11% ± 9.65%
+IC 95% (t-Student, df=18): [75.46% - 84.77%]
+Mejor Sujeto: 7M (93.38%)
+Peor Sujeto: 13M (61.98%)
+
+--- CLASSIFICATION REPORT ---
+              precision    recall  f1-score   support
+
+     Neutral      0.961     0.775     0.858     17683
+       Miedo      0.482     0.847     0.614      1634
+         Ira      0.500     0.847     0.629      1842
+     Alegría      0.366     0.812     0.505       744
+
+    accuracy                          0.788     21903
+   macro avg      0.577     0.820     0.651     21903
+weighted avg      0.866     0.788     0.809     21903
+
+--- MATRIZ DE CONFUSIÓN ---
+[[13703  1448  1516  1016]
+ [  199  1384    35    16]
+ [  239    28  1561    14]
+ [  115    14    11   604]]
+

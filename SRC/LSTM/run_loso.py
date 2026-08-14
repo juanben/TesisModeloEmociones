@@ -32,7 +32,7 @@ else:
 # CONFIGURACIÓN DEL MODO DE ENTRENAMIENTO
 # ======================================================
 MODO_GLOBAL = True      # True: Entrena todos los sujetos uno por uno. False: Solo entrena el sujeto manual.
-SUBJECT_OUT = "10H"     # Sujeto manual (solo se usa si MODO_GLOBAL = False)
+SUBJECT_OUT = "12H"     # Sujeto manual (solo se usa si MODO_GLOBAL = False)
 
 
 # ======================================================
